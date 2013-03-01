@@ -42,13 +42,13 @@ module.exports = function (config, done) {
         app.use(express.cookieParser());
         app.use(express.session({ secret: app.config.secret }));
 
-        global.hbs.registerHelper('replaceRoute', function(text) {
+        hbs.registerHelper('replaceRoute', function(text) {
             text = text.toString();
             text = text.replace(/\//g,'-');
             return new hbs.SafeString(text);
         });
 
-        global.hbs.registerHelper('extend', function(name, context) {
+        hbs.registerHelper('extend', function(name, context) {
             var block = blocks[name];
             if (!block) {
                 block = blocks[name] = [];
@@ -57,7 +57,7 @@ module.exports = function (config, done) {
             block.push(context.fn(this)); // for older versions of handlebars, use block.push(context(this));
         });
 
-        global.hbs.registerHelper('block', function(name) {
+        hbs.registerHelper('block', function(name) {
             var val = (blocks[name] || []).join('\n');
 
             // clear the block
