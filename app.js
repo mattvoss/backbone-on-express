@@ -72,7 +72,7 @@ module.exports = function (config, done) {
 	for (dependency in pkg.dependencies) {
 		if (pkg.dependencies.hasOwnProperty(dependency)) {
 			if (dependency == 'express.io') {
-				global['express'] = require(dependency)();
+				global['express'] = require(dependency);
 			} else if (dependency !== 'anvil.js') {
 				global[dependency] = require(dependency);
 			} 
