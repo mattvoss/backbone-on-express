@@ -3,121 +3,144 @@
 
 module.exports = function (config, done) {
 
-	'use strict';
+    'use strict';
 
-	var pkg = require( './package.json' ),
-			fs = require( 'fs' ),
-			dependencies = {}, dependency,
-			passport = require('passport');
+    var pkg = require( './package.json' ),
+            fs = require( 'fs' ),
+            dependencies = {}, dependency,
+            passport = require('passport');
 
-	function startApp () {
+    function startApp () {
 
-		// Include all of the files in the framework lib
-		_.each(fs.readdirSync( __dirname + '/lib'), function (file) {
-			if (file.indexOf('.js') !== -1) {
-				require( __dirname + '/lib/' + file )(express, app);
-			}
-		});
+        // Include all of the files in the framework lib
+        _.each(fs.readdirSync( __dirname + '/lib'), function (file) {
+            if (file.indexOf('.js') !== -1) {
+                require( __dirname + '/lib/' + file )(express, app);
+            }
+        });
 
-		if (app.config.passport) {
-			app.use(passport.initialize());
-			app.use(passport.session());
-		}
+        if (app.config.passport) {
+            app.use(passport.initialize());
+            app.use(passport.session());
+        }
 
-		// Controllers
-		require( config.rootPath + 'app/controllers/app_controller.js');
-		require( './lib/controllers/errors_controller.js');
-		_.each(fs.readdirSync( config.rootPath + 'app/controllers' ), function (file) {
-			if (file !== 'app_controller.js') {
-				require( config.rootPath + 'app/controllers/' + file );
-			}
-		});
+        // Controllers
+        require( config.rootPath + 'app/controllers/app_controller.js');
+        require( './lib/controllers/errors_controller.js');
+        _.each(fs.readdirSync( config.rootPath + 'app/controllers' ), function (file) {
+            if (file !== 'app_controller.js') {
+                require( config.rootPath + 'app/controllers/' + file );
+            }
+        });
 
-		// We may need to make this a config option at some point
-		app.use(express.bodyParser());
-		app.set('views', config.templates);
-		app.set('view engine', config.viewEngine);
-		app.set('layout', config.layout);
+        // We may need to make this a config option at some point
+        app.use(express.bodyParser());
+        app.set('views', config.templates);
+        app.set('view engine', config.viewEngine);
+        app.set('layout', config.layout);
 
-		app.use(express.cookieParser());
-		app.use(express.session({ secret: app.config.secret }));
+        app.use(express.cookieParser());
+        app.use(express.session({ secret: app.config.secret }));
 
-		app.use(global['express-ejs-layouts']);
+        global.hbs.registerHelper('replaceRoute', function(text) {
+            text = text.toString();
+            text = text.replace(/\//g,'-');
+            return new hbs.SafeString(text);
+        });
 
-		// Start the server
-		app.log(' ______              __     __                                            _______                                     \n|   __ \\.---.-.----.|  |--.|  |--.-----.-----.-----.    .-----.-----.    |    ___|.--.--.-----.----.-----.-----.-----.\n|   __ <|  _  |  __||    < |  _  |  _  |     |  -__|    |  _  |     |    |    ___||_   _|  _  |   _|  -__|__ --|__ --|\n|______/|___._|____||__|__||_____|_____|__|__|_____|    |_____|__|__|    |_______||__.__|   __|__| |_____|_____|_____|\n                                                                                        |__|  ', 'yellow');
-		app.log('Server started at port ' + app.config.port + '\n', 'green');
-		app.listen(app.config.port);
+        global.hbs.registerHelper('extend', function(name, context) {
+            var block = blocks[name];
+            if (!block) {
+                block = blocks[name] = [];
+            }
 
-		app.use(express['static'](app.config['public']));
-		app.use(express['static']( __dirname + '/public' ));
+            block.push(context.fn(this)); // for older versions of handlebars, use block.push(context(this));
+        });
 
-		// Error Handler
-		app.use(app.config.errorHandler);
+        global.hbs.registerHelper('block', function(name) {
+            var val = (blocks[name] || []).join('\n');
 
-		app.use(app.router);
+            // clear the block
+            blocks[name] = [];
+            return val;
+        });
 
-		// Get the routes
-		require( config.rootPath + 'app/config/routes.js' );
+        //app.use(global['express-ejs-layouts']);
 
-		app.log('Users can now access ' + app.config.url + ':' + app.config.port + '\n');
+        // Start the server
+        app.log(' ______              __     __                                            _______                                     \n|   __ \\.---.-.----.|  |--.|  |--.-----.-----.-----.    .-----.-----.    |    ___|.--.--.-----.----.-----.-----.-----.\n|   __ <|  _  |  __||    < |  _  |  _  |     |  -__|    |  _  |     |    |    ___||_   _|  _  |   _|  -__|__ --|__ --|\n|______/|___._|____||__|__||_____|_____|__|__|_____|    |_____|__|__|    |_______||__.__|   __|__| |_____|_____|_____|\n                                                                                        |__|  ', 'yellow');
+        app.log('Server started at port ' + app.config.port + '\n', 'green');
+        app.listen(app.config.port);
 
-		if (typeof done === 'function') {
-			done(app);
-		}
+        app.use(express['static'](app.config['public']));
+        app.use(express['static']( __dirname + '/public' ));
 
-	}
+        // Error Handler
+        app.use(app.config.errorHandler);
 
-	// Load all of the dependencies from the package.json file and make them global variables
-	for (dependency in pkg.dependencies) {
-		if (pkg.dependencies.hasOwnProperty(dependency)) {
-			if (dependency == 'express.io') {
-				global['express'] = require(dependency);
-			} else if (dependency !== 'anvil.js') {
-				global[dependency] = require(dependency);
-			} 
-		}
-	}
+        app.use(app.router);
 
-	// Underscore shorthand
-	global._ = underscore;
-	global.Backbone = backbone;
-	global.define = requirejs;
+        // Get the routes
+        require( config.rootPath + 'app/config/routes.js' );
 
-	// Initialize the application
-	global.app = express();
+        app.log('Users can now access ' + app.config.url + ':' + app.config.port + '\n');
 
-	// Add configuration to the application
-	app.config = _.extend(config, _.extend(
+        if (typeof done === 'function') {
+            done(app);
+        }
 
-		require( config.rootPath + 'app/config/environments/global.json' ),
-		require( config.rootPath + 'app/config/environments/' + (app.settings.env || 'development') + '.json')), {
+    }
 
-			// The default error handler
-			errorHandler: function (err, req, res, next) {
-				console.log(err);
-				fs.appendFileSync(config.rootPath + 'log/error.log', err, 'utf8');
-		  },
+    // Load all of the dependencies from the package.json file and make them global variables
+    for (dependency in pkg.dependencies) {
+        if (pkg.dependencies.hasOwnProperty(dependency)) {
+            if (dependency == 'express.io') {
+                global['express'] = require(dependency);
+            } else if (dependency !== 'anvil.js') {
+                global[dependency] = require(dependency);
+            }
+        }
+    }
 
-		  // The Access Log Writer
-		  accessHandler: function (template, data) {
-				fs.appendFileSync(config.rootPath + 'log/access.log', template + '\n' + new Date().getDate() + '/' + new Date().getMonth() + '/' + new Date().getFullYear() + ' : ' + new Date().getTime() + '\n\n', 'utf8');
-		  }
+    // Underscore shorthand
+    global._ = underscore;
+    global.Backbone = backbone;
+    global.define = requirejs;
 
-		}
+    // Initialize the application
+    global.app = express();
 
-	);
+    // Add configuration to the application
+    app.config = _.extend(config, _.extend(
 
-	// Pass the configuration to requirejs
-	requirejs.config(app.config.require);
+        require( config.rootPath + 'app/config/environments/global.json' ),
+        require( config.rootPath + 'app/config/environments/' + (app.settings.env || 'development') + '.json')), {
 
-	// Get the storage driver if one is specified
-	if (app.config.storage) {
-		require( __dirname + '/lib/storage/' + (app.config.storage.driver || 'mongoose') + '.js' )(app, function () {
-			startApp();
-		});
-	} else {
-		startApp();
-	}
+            // The default error handler
+            errorHandler: function (err, req, res, next) {
+                console.log(err);
+                fs.appendFileSync(config.rootPath + 'log/error.log', err, 'utf8');
+          },
+
+          // The Access Log Writer
+          accessHandler: function (template, data) {
+                fs.appendFileSync(config.rootPath + 'log/access.log', template + '\n' + new Date().getDate() + '/' + new Date().getMonth() + '/' + new Date().getFullYear() + ' : ' + new Date().getTime() + '\n\n', 'utf8');
+          }
+
+        }
+
+    );
+
+    // Pass the configuration to requirejs
+    requirejs.config(app.config.require);
+
+    // Get the storage driver if one is specified
+    if (app.config.storage) {
+        require( __dirname + '/lib/storage/' + (app.config.storage.driver || 'mongoose') + '.js' )(app, function () {
+            startApp();
+        });
+    } else {
+        startApp();
+    }
 
 };

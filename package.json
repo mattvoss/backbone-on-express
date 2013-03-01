@@ -23,7 +23,8 @@
     "anvil.scaffold.backboneonexpress": ">=0.2.1",
     "passport": "latest",
     "mongoose": "latest",
-    "ejs": "latest"
+    "ejs": "latest",
+    "hbs": "latest"
   },
   "bin": {
     "backbone": "./bin/backbone",
