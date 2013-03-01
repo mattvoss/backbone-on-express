@@ -13,7 +13,7 @@
   "license": "BSD",
   "dependencies": {
     "backbone": ">=0.9.9",
-    "express": ">=3.0.5",
+    "express.io": "latest",
     "underscore": ">=1.4.3",
     "requirejs": ">=2.1.2",
     "express-ejs-layouts": ">=0.3.1",
