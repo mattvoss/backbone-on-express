@@ -1,4 +1,4 @@
-#!/usr/bin/env node --debug-brk
+#!/usr/bin/env node
 
 var sys = require('util'),
         server = process.cwd() + '/server.js',
