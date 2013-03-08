@@ -95,7 +95,7 @@ module.exports = function (config, done) {
         if (app.config.storage.length >= (index + 1)) {
             var storage = app.config.storage[index];
             require( __dirname + '/lib/storage/' + storage.driver + '.js' )(index, storage, app, function () {
-                loadStoage(index+1);
+                loadStorage(index+1);
             });
         } else {
             startApp();
