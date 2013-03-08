@@ -135,8 +135,14 @@ module.exports = function (config, done) {
     requirejs.config(app.config.require);
 
     // Get the storage driver if one is specified
-    if (app.config.storage) {
-        require( __dirname + '/lib/storage/' + (app.config.storage.driver || 'mongoose') + '.js' )(app, function () {
+    if (app.config.storage.length > 0) {
+        app.config.storage.forEach(function(storage, index, array) {
+
+
+            require( __dirname + '/lib/storage/' + storage.driver + '.js' );
+        });
+
+        (app, function () {
             startApp();
         });
     } else {

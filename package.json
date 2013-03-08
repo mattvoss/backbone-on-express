@@ -24,7 +24,8 @@
     "passport": "latest",
     "mongoose": "latest",
     "ejs": "latest",
-    "hbs": "latest"
+    "hbs": "latest",
+    "pg": "latest"
   },
   "bin": {
     "backbone": "./bin/backbone",
