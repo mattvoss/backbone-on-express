@@ -91,6 +91,17 @@ module.exports = function (config, done) {
 
     }
 
+    function loadStorage(index) {
+        if (app.config.storage.length >= (index + 1)) {
+            var storage = app.config.storage[index];
+            require( __dirname + '/lib/storage/' + storage.driver + '.js' )(index, storage, app, function () {
+                loadStoage(index+1);
+            });
+        } else {
+            startApp();
+        }
+    }
+
     // Load all of the dependencies from the package.json file and make them global variables
     for (dependency in pkg.dependencies) {
         if (pkg.dependencies.hasOwnProperty(dependency)) {
@@ -137,19 +148,13 @@ module.exports = function (config, done) {
     // Get the storage driver if one is specified
     if (app.config.storage.length > 0) {
         var storage = app.config.storage[0];
-        require( __dirname + '/lib/storage/' + storage.driver + '.js' )(storage, app, function () {
-            startApp();
-        });
-        /*
-        app.config.storage.forEach(function(storage, index, array) {
 
-
-            require( __dirname + '/lib/storage/' + storage.driver + '.js' );
-        });
-        */
+        loadStorage(0);
 
     } else {
         startApp();
     }
 
 };
+
+
