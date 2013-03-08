@@ -147,6 +147,7 @@ module.exports = function (config, done) {
 
     // Get the storage driver if one is specified
     if (app.config.storage.length > 0) {
+        app.Storage = {};
         var storage = app.config.storage[0];
 
         loadStorage(0);
