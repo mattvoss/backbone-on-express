@@ -137,7 +137,7 @@ module.exports = function (config, done) {
     // Get the storage driver if one is specified
     if (app.config.storage.length > 0) {
         var storage = app.config.storage[0];
-        require( __dirname + '/lib/storage/' + storage.driver + '.js' )(app, function () {
+        require( __dirname + '/lib/storage/' + storage.driver + '.js' )(storage, app, function () {
             startApp();
         });
         /*
